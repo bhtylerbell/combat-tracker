@@ -77,14 +77,22 @@ const COMMON_CONDITIONS = [
       {/* Header Row */}
       <div className="flex justify-between items-center mb-1">
         <div className="flex items-center gap-2">
-          <h2 className="text-base font-semibold text-white">{combatant.name}</h2>
+          <h2 className="text-base font-semibold text-white text-xl">{combatant.name}</h2>
           {isDead && (
             <span className="px-1 py-0.5 bg-red-600 text-white text-xs rounded-full">Dead</span>
           )}
         </div>
-        <span className="px-2 py-0.5 text-[10px] bg-gray-700 text-gray-300 rounded mr-5">
-          {combatant.type}
-        </span>
+        <span
+  className={`px-2 py-0.5 text-xs font-semibold rounded text-white mr-5 ${
+    combatant.type === "PC"
+      ? "bg-blue-600"
+      : combatant.type === "NPC"
+      ? "bg-violet-600"
+      : "bg-red-600"
+  }`}
+>
+  {combatant.type}
+</span>
       </div>
 
       {/* Stats Row */}

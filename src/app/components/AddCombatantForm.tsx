@@ -10,7 +10,7 @@ interface Props {
 
 export default function AddCombatantForm({ onAdd }: Props) {
   const [name, setName] = useState("");
-  const [type, setType] = useState<CombatantType>("NPC");
+  const [type, setType] = useState<CombatantType>("PC");
   const [initiative, setInitiative] = useState<number>(0);
   const [hp, setHp] = useState<number>(10);
   const [ac, setAc] = useState<number>(10);
@@ -68,8 +68,8 @@ export default function AddCombatantForm({ onAdd }: Props) {
             onChange={(e) => setType(e.target.value as CombatantType)}
             className="w-full rounded-md border border-gray-600 bg-gray-900 text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="PC">Player Character</option>
-            <option value="NPC">Non-Player Character</option>
+            <option value="PC">Player</option>
+            <option value="NPC">NPC</option>
             <option value="Monster">Monster</option>
           </select>
         </div>
