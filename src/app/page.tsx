@@ -4,10 +4,15 @@ import { useState } from "react";
 import AddCombatantForm from "@/components/AddCombatantForm";
 import CombatantCard from "@/components/CombatantCard";
 import { Combatant } from "@/types/combatant";
+import { useEffect } from "react";
 
 export default function CombatPage() {
+  const STORAGE_KEY = "combat_tracker_state";
+  const [hasLoaded, setHasLoaded] = useState(false);
+
   const [combatants, setCombatants] = useState<Combatant[]>([]);
   const [turnIndex, setTurnIndex] = useState(0);
+  const [round, setRound] = useState(1);
 
   const addCombatant = (newC: Combatant) => {
     const updated = [...combatants, newC].sort(
@@ -16,9 +21,48 @@ export default function CombatPage() {
     setCombatants(updated);
   };
 
-  const nextTurn = () => {
-    setTurnIndex((prev) => (prev + 1) % combatants.length);
+
+// Inside CombatPage component
+useEffect(() => {
+  if (!hasLoaded) return; // ⛔ prevent premature saving
+
+  const state = {
+    combatants,
+    turnIndex,
+    round,
   };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}, [combatants, turnIndex, round, hasLoaded]);
+
+
+useEffect(() => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      setCombatants(parsed.combatants || []);
+      setTurnIndex(parsed.turnIndex || 0);
+      setRound(parsed.round || 1);
+    } catch (err) {
+      console.error("Failed to load combat state:", err);
+    }
+  }
+  setHasLoaded(true); // ✅ Only after load is complete
+}, []);
+
+
+
+const nextTurn = () => {
+  const nextIndex = (turnIndex + 1) % combatants.length;
+
+  if (nextIndex === 0) {
+    setRound((r) => r + 1); // Will only run once
+  }
+
+  setTurnIndex(nextIndex);
+};
+
+
 
   const updateCombatant = (updated: Combatant) => {
   setCombatants((prev) =>
@@ -33,16 +77,49 @@ const removeCombatant = (id: string) => {
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside className="sticky top-0 h-screen overflow-y-auto w-full md:w-1/3 lg:w-1/4 p-4 border-r border-gray-700 bg-gray-900">
-        <AddCombatantForm onAdd={addCombatant} />
-        {combatants.length > 0 && (
-          <button
-            className="mt-6 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-md transition duration-150"
-            onClick={nextTurn}
-          >
-            Next Turn
-          </button>
-        )}
+      <aside className="sticky top-0 h-screen w-full md:w-1/3 lg:w-1/4 p-4 border-r border-gray-700 bg-gray-900 flex flex-col">
+<div className="flex-1 overflow-y-auto">
+  {/* Round Tracker */}
+  <div className="mb-6 text-center">
+    <h2 className="text-lg font-semibold text-blue-400 mb-2">🕒 Round Tracker</h2>
+    <div className="flex justify-center items-center gap-2">
+      <button type="button" onClick={() => setRound((r) => Math.max(1, r - 1))} className="px-2 py-1 text-sm bg-gray-700 text-white rounded hover:bg-gray-600">
+        -1
+      </button>
+      <span className="text-white text-xl font-bold">{round}</span>
+      <button type="button" onClick={() => setRound((r) => r + 1)} className="px-2 py-1 text-sm bg-gray-700 text-white rounded hover:bg-gray-600">
+        +1
+      </button>
+    </div>
+  </div>
+
+  <AddCombatantForm onAdd={addCombatant} />
+
+  {combatants.length > 0 && (
+    <button
+      type="button"
+      className="mt-6 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-md transition duration-150 w-full"
+      onClick={nextTurn}
+    >
+      Next Turn
+    </button>
+  )}
+</div>
+
+    <button
+  type="button"
+  onClick={() => {
+    setCombatants([]);
+    setTurnIndex(0);
+    setRound(1);
+    localStorage.removeItem(STORAGE_KEY);
+  }}
+  className="mt-4 text-sm text-red-300 hover:text-red-400 w-full"
+>
+  🧹 Clear Combat
+</button>
+
+
       </aside>
 
       {/* Main Combat Area */}

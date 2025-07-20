@@ -24,7 +24,9 @@ export default function CombatantCard({
     setRecentChange(delta < 0 ? "damage" : "heal");
     setTimeout(() => setRecentChange(null), 300);
   };
-
+const updateStatuses = (newStatuses: string[]) => {
+  onUpdate({ ...combatant, statuses: newStatuses });
+};
   const isDead = combatant.currentHP <= 0;
   const shouldGrayOut = isDead && combatant.type !== "PC";
 
@@ -35,6 +37,25 @@ export default function CombatantCard({
       : recentChange === "heal"
       ? "animate-flash-heal"
       : "";
+const COMMON_CONDITIONS = [
+  "Blinded",
+  "Charmed",
+  "Deafened",
+  "Frightened",
+  "Grappled",
+  "Incapacitated",
+  "Invisible",
+  "Paralyzed",
+  "Petrified",
+  "Poisoned",
+  "Prone",
+  "Restrained",
+  "Stunned",
+  "Unconscious",
+  "Concentrating",
+  "Blessed",
+  "Cursed",
+];
 
   return (
     <div
@@ -111,6 +132,74 @@ export default function CombatantCard({
           +Heal
         </button>
       </div>
+{/* Status Badges */}
+{combatant.statuses && combatant.statuses.length > 0 && (
+  <div className="flex flex-wrap gap-2 mb-2 text-xs text-white">
+    {combatant.statuses.map((status, i) => (
+      <span
+        key={i}
+        className="bg-gray-600 px-2 py-0.5 rounded-full flex items-center gap-1"
+      >
+        {status}
+        <button
+          onClick={() =>
+            updateStatuses(combatant.statuses!.filter((_, idx) => idx !== i))
+          }
+          className="text-xs text-red-300 hover:text-red-400"
+          title="Remove condition"
+        >
+          ×
+        </button>
+      </span>
+    ))}
+  </div>
+)}
+
+<div className="flex flex-wrap gap-2 mb-2">
+  {COMMON_CONDITIONS.map((condition) => {
+    const isActive = combatant.statuses?.includes(condition);
+    return (
+      <button
+        key={condition}
+        onClick={() => {
+          const current = combatant.statuses || [];
+          if (isActive) {
+            updateStatuses(current.filter((c) => c !== condition));
+          } else {
+            updateStatuses([...current, condition]);
+          }
+        }}
+        className={`px-2 py-0.5 rounded-full text-xs font-medium border transition ${
+          isActive
+            ? "bg-blue-600 text-white border-blue-400"
+            : "bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600"
+        }`}
+      >
+        {condition}
+      </button>
+    );
+  })}
+</div>
+
+
+<input
+  type="text"
+  placeholder="Add custom status"
+  className="w-full mb-2 px-2 py-1 text-sm bg-gray-900 border border-gray-600 rounded text-white"
+  onKeyDown={(e) => {
+    if (e.key === "Enter" && e.currentTarget.value.trim() !== "") {
+      e.preventDefault();
+      const newStatus = e.currentTarget.value.trim();
+      if (
+        !combatant.statuses?.includes(newStatus)
+      ) {
+        updateStatuses([...(combatant.statuses || []), newStatus]);
+      }
+      e.currentTarget.value = "";
+    }
+  }}
+/>
+
 
       {/* Notes (optional) */}
       {combatant.notes && (

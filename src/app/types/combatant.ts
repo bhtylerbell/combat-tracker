@@ -3,11 +3,12 @@ export type CombatantType = 'PC' | 'NPC' | 'Monster';
 export interface Combatant {
   id: string;
   name: string;
-  type: CombatantType;
+  type: 'PC' | 'NPC' | 'Monster';
   initiative: number;
   currentHP: number;
   maxHP: number;
   ac: number;
   notes?: string;
-  isActive: boolean; // For highlighting current turn
+  isActive: boolean;
+  statuses?: string[]; // ✅ New field
 }
