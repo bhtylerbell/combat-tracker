@@ -5,6 +5,8 @@ import AddCombatantForm from "@/components/AddCombatantForm";
 import CombatantCard from "@/components/CombatantCard";
 import { Combatant } from "@/types/combatant";
 import { useEffect } from "react";
+import { Analytics } from "@vercel/analytics/next"
+
 
 export default function CombatPage() {
   const STORAGE_KEY = "combat_tracker_state";
@@ -77,6 +79,7 @@ const removeCombatant = (id: string) => {
 
   return (
     <div className="min-h-screen flex">
+      <Analytics/>
       {/* Sidebar */}
       <aside className="sticky top-0 h-screen w-full md:w-1/3 lg:w-1/4 p-4 border-r border-gray-700 bg-gray-900 flex flex-col">
 <div className="flex-1 overflow-y-auto">
