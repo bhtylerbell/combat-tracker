@@ -12,9 +12,7 @@ A sleek and modern combat tracker for Dungeons & Dragons and other TTRPGs, built
 - ♻️ Round counter with automatic advancement
 - ❤️ Quick heal and damage controls
 - 💀 Automatic death state when HP reaches 0
-- 🔒 Persistent combat state using `localStorage`
 - 🧠 Condition tracking with common status effects
-- 🧹 Clear/reset button with confirmation modal
 - 💡 Responsive dark-mode UI using Tailwind
 
 ---
@@ -24,8 +22,6 @@ A sleek and modern combat tracker for Dungeons & Dragons and other TTRPGs, built
 - **Framework:** [Next.js](https://nextjs.org/)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **State Management:** React `useState` + `useEffect`
-- **Persistence:** Browser `localStorage`
 
 ---
 
@@ -34,7 +30,7 @@ A sleek and modern combat tracker for Dungeons & Dragons and other TTRPGs, built
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/dnd-combat-tracker.git
+git clone https://github.com/bhtylerbell/combat-tracker.git
 cd dnd-combat-tracker
 ```
 
@@ -54,33 +50,6 @@ npm run dev
 
 ---
 
-## 📁 Project Structure
-
-```
-src/
-  ├── app/
-  │   ├── components/
-  │   │   ├── AddCombatantForm.tsx
-  │   │   └── CombatantCard.tsx
-  │   ├── types/
-  │   │   └── combatant.ts
-  │   └── page.tsx
-  └── styles/
-      └── globals.css
-```
-
----
-
-## 🧪 Future Improvements
-
-- ☁️ Save/load encounters from file or cloud
-- 🧍 Add character avatars or class icons
-- 🗡️ Support for attack rolls and saving throws
-- 🔁 Initiative reordering during combat
-- 📱 Mobile-first optimizations
-
----
-
 ## 🛠️ Dev Scripts
 
 ```bash
@@ -94,10 +63,3 @@ npm run start     # Run the production server
 ## 📖 License
 
 MIT — free to use, modify, and share.
-
----
-
-## 👑 Acknowledgements
-
-- Built with love for DMs and players alike 🐉
-- Inspired by countless paper initiative trackers
