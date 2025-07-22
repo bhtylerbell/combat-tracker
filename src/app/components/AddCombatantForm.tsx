@@ -71,6 +71,7 @@ export default function AddCombatantForm({ onAdd }: Props) {
             <option value="PC">Player</option>
             <option value="NPC">NPC</option>
             <option value="Monster">Monster</option>
+            <option value="Lair">Lair</option>
           </select>
         </div>
 
