@@ -1,4 +1,4 @@
-# 🧙‍♂️ D&D Combat Tracker
+# 🧙‍♂️ TTRPG Combat Tracker
 
 A sleek and modern combat tracker for Dungeons & Dragons and other TTRPGs, built with **Next.js**, **TypeScript**, and **Tailwind CSS**. Designed to be fast, responsive, and easy to use during high-paced combat sessions.
 

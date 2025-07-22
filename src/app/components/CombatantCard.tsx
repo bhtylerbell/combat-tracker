@@ -61,7 +61,7 @@ if (combatant.type === "Lair Action") {
     return (
       <div ref={cardRef}
       className={`relative rounded-lg border shadow-sm p-4 transition-all duration-200 text-sm ${
-        isActive ? "border-yellow-600 bg-blue-900/30" : "border-gray-700 bg-gray-800"
+        isActive ? "border-yellow-600 bg-yellow-900/30" : "border-gray-700 bg-yellow-900/30"
       } ${shouldGrayOut ? "opacity-50 grayscale" : ""} ${feedbackClass}`}
     >
         <button
@@ -79,7 +79,7 @@ if (combatant.type === "Lair Action") {
                 type="number"
                 value={combatant.initiative}
                 onChange={(e) => onUpdate({ ...combatant, initiative: Number(e.target.value) })}
-                className="bg-yellow-600 text-white px-3 py-1 rounded text-sm font-bold min-w-[42px] text-center w-16"
+                className="bg-yellow-600/70 text-white px-3 py-1 rounded text-sm font-bold min-w-[42px] text-center w-16"
               />
             </div>
             <input
@@ -89,7 +89,7 @@ if (combatant.type === "Lair Action") {
               className="bg-transparent text-lg font-semibold text-yellow-300 border-b border-yellow-500 focus:outline-none"
             />
           </div>
-          <span className="px-3 py-1 text-sm font-semibold rounded bg-yellow-700 text-white">
+          <span className="px-3 py-1 text-sm font-semibold rounded bg-yellow-700/50 text-white">
             {combatant.type}
           </span>
         </div>
@@ -106,8 +106,16 @@ if (combatant.type === "Lair Action") {
   return (
     <div ref={cardRef}
       className={`relative rounded-lg border shadow-sm p-4 transition-all duration-200 text-sm ${
-        isActive ? "border-blue-500 bg-blue-900/30" : "border-gray-700 bg-gray-800"
-      } ${shouldGrayOut ? "opacity-50 grayscale" : ""} ${feedbackClass}`}
+        isActive ? "border-blue-500 bg-blue-900/30" : "border-gray-700 bg-blue-900/30"
+      } ${
+            combatant.type === "PC"
+              ? "bg-blue-800/30"
+              : combatant.type === "NPC"
+              ? "bg-violet-800/30"
+              : combatant.type === "Monster"
+              ? "bg-red-800/30"
+              : "bg-blue-800"
+          } ${shouldGrayOut ? "opacity-50 grayscale" : ""} ${feedbackClass}`}
     >
       <button
         onClick={() => onRemove(combatant.id)}
@@ -152,7 +160,7 @@ if (combatant.type === "Lair Action") {
                       onUpdate({ ...combatant, currentHP: current, maxHP: max });
                     }
                   }}
-                  className="bg-green-700 text-white px-3 py-2 rounded text-sm font-semibold w-28 text-center"
+                  className="bg-green-700/70 text-white px-3 py-2 rounded text-sm font-semibold w-28 text-center"
                 />
               </div>
               <div className="flex flex-col items-center">
@@ -161,7 +169,7 @@ if (combatant.type === "Lair Action") {
                   type="number"
                   value={combatant.ac}
                   onChange={(e) => onUpdate({ ...combatant, ac: Number(e.target.value) })}
-                  className="bg-purple-700 text-white px-3 py-2 rounded text-sm font-semibold w-16 text-center"
+                  className="bg-purple-700/70 text-white px-3 py-2 rounded text-sm font-semibold w-16 text-center"
                 />
               </div>
             </div>
@@ -170,10 +178,10 @@ if (combatant.type === "Lair Action") {
         <span
           className={`px-3 py-1 text-sm font-semibold rounded text-white ${
             combatant.type === "PC"
-              ? "bg-blue-600"
+              ? "bg-blue-800/50"
               : combatant.type === "NPC"
-              ? "bg-violet-600"
-              : "bg-red-600"
+              ? "bg-violet-800/50"
+              : "bg-red-800/50"
           }`}
         >
           {combatant.type}
