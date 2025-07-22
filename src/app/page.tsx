@@ -23,6 +23,7 @@ export default function CombatPage() {
     );
     setCombatants(updated);
   };
+const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
 
 // Inside CombatPage component
@@ -64,24 +65,56 @@ const nextTurn = () => {
 
   setTurnIndex(nextIndex);
 };
+const previousTurn = () => {
+  setTurnIndex((prev) => {
+    const newIndex = (prev - 1 + combatants.length) % combatants.length;
+
+    // If we're wrapping around to the end of the list, decrement the round
+    if (prev === 0) {
+      setRound((r) => Math.max(1, r - 1));
+    }
+
+    return newIndex;
+  });
+};
 
 
 
-  const updateCombatant = (updated: Combatant) => {
+const updateCombatant = (updated: Combatant) => {
   setCombatants((prev) =>
-    prev.map((c) => (c.id === updated.id ? updated : c))
+    [...prev.map((c) => (c.id === updated.id ? updated : c))].sort(
+      (a, b) => b.initiative - a.initiative
+    )
   );
 };
+
 const removeCombatant = (id: string) => {
   setCombatants((prev) => prev.filter((c) => c.id !== id));
 };
 
 
   return (
+    
     <div className="min-h-screen flex">
+      <button
+  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+  className="fixed top-4 left-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-md shadow hover:bg-gray-700 focus:outline-none"
+>
+  {isSidebarOpen ? "← Hide" : "→ Show"}
+</button>
+
       <Analytics/>
       {/* Sidebar */}
-      <aside className="sticky top-0 h-screen w-full md:w-1/3 lg:w-1/4 p-4 border-r border-gray-700 bg-gray-900 flex flex-col">
+
+
+      
+      <aside
+  className={`transition-all duration-300 ${
+    isSidebarOpen ? "w-full md:w-1/3 lg:w-1/4 p-4" : "w-0 p-0 overflow-hidden"
+  } sticky top-0 h-screen border-r border-gray-700 bg-gray-900`}
+>
+  {isSidebarOpen && (
+    <>
 <div className="flex-1 overflow-y-auto">
   {/* Round Tracker */}
   <div className="mb-6 text-center">
@@ -97,19 +130,11 @@ const removeCombatant = (id: string) => {
     </div>
   </div>
 
-  <AddCombatantForm onAdd={addCombatant} />
+  <AddCombatantForm onAdd={addCombatant} combatantCount={combatants.length} />
 
-  {combatants.length > 0 && (
-    <button
-      type="button"
-      className="mt-6 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-md transition duration-150 w-full"
-      onClick={nextTurn}
-    >
-      Next Turn
-    </button>
-  )}
+
 </div>
-
+<div className="fixed bottom-4 left-4">
     <button
   type="button"
   onClick={() => setShowConfirmClear(true)}
@@ -117,10 +142,13 @@ const removeCombatant = (id: string) => {
 >
   🧹 Clear Combat
 </button>
+<div className="mt-4 text-xs text-white-300 hover:text-red-400 w-full">Version: 0.9.0</div>
+</div>
 
 
-
-      </aside>
+      </>
+  )}
+</aside>
 
       {/* Main Combat Area */}
       <main className="flex-1 p-6 space-y-4 overflow-y-auto">
@@ -175,6 +203,24 @@ const removeCombatant = (id: string) => {
 )}
 
       </main>
+      <div className="fixed bottom-4 right-4 flex gap-3 z-50">
+  <button
+    type="button"
+    onClick={previousTurn}
+    className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md shadow"
+  >
+    ⬅ Previous Turn
+  </button>
+  <button
+    type="button"
+    onClick={nextTurn}
+    className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-md shadow"
+  >
+    Next Turn ➡
+  </button>
+</div>
+
     </div>
+    
   );
 }

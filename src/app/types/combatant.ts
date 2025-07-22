@@ -1,9 +1,9 @@
-export type CombatantType = 'PC' | 'NPC' | 'Monster' | 'Lair';
+export type CombatantType = 'PC' | 'NPC' | 'Monster' | 'Lair Action';
 
 export interface Combatant {
   id: string;
   name: string;
-  type: 'PC' | 'NPC' | 'Monster' | 'Lair';
+  type: 'PC' | 'NPC' | 'Monster' | 'Lair Action';
   initiative: number;
   currentHP: number;
   maxHP: number;
