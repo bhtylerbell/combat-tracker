@@ -12,7 +12,7 @@ export default function CombatPage() {
   const STORAGE_KEY = "combat_tracker_state";
   const [hasLoaded, setHasLoaded] = useState(false);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
-
+  const [diceResult, setDiceResult] = useState<string>("");
   const [combatants, setCombatants] = useState<Combatant[]>([]);
   const [turnIndex, setTurnIndex] = useState(0);
   const [round, setRound] = useState(1);
@@ -92,6 +92,10 @@ const removeCombatant = (id: string) => {
   setCombatants((prev) => prev.filter((c) => c.id !== id));
 };
 
+const rollDice = (sides: number) => {
+    const roll = Math.floor(Math.random() * sides) + 1;
+    setDiceResult(`d${sides}: ${roll}`);
+  };
 
   return (
     
@@ -145,7 +149,22 @@ const removeCombatant = (id: string) => {
 <div className="mt-4 text-xs text-white-300 hover:text-red-400 w-full">Version: 0.9.0</div>
 </div>
 
-
+ {/* Dice Roller */}
+      <div className="mt-6 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
+        <h2 className="text-lg font-semibold text-blue-400">Dice Roller</h2>
+        <div className="flex flex-wrap gap-2">
+          {[4, 6, 8, 10, 12, 20, 100].map((sides) => (
+            <button
+              key={sides}
+              onClick={() => rollDice(sides)}
+              className="px-2 py-1 bg-gray-700 text-white text-sm rounded hover:bg-gray-600"
+            >
+              d{sides}
+            </button>
+          ))}
+        </div>
+        {diceResult && <p className="text-white text-sm">Result: {diceResult}</p>}
+      </div>
       </>
   )}
 </aside>
@@ -203,22 +222,24 @@ const removeCombatant = (id: string) => {
 )}
 
       </main>
-      <div className="fixed bottom-4 right-4 flex gap-3 z-50">
-  <button
-    type="button"
-    onClick={previousTurn}
-    className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md shadow"
-  >
-    ⬅ Previous Turn
-  </button>
-  <button
-    type="button"
-    onClick={nextTurn}
-    className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-md shadow"
-  >
-    Next Turn ➡
-  </button>
-</div>
+      {/* Navigation Buttons */}
+      {combatants.length >= 2 && (
+  <div className="fixed bottom-4 right-4 flex gap-2 z-50">
+    <button
+      onClick={previousTurn}
+      className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md shadow"
+    >
+      Previous Turn
+    </button>
+    <button
+      onClick={nextTurn}
+      className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md shadow"
+    >
+      Next Turn
+    </button>
+  </div>
+)}
+
 
     </div>
     

@@ -49,7 +49,7 @@ export default function AddCombatantForm({ onAdd, combatantCount }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Name */}
-        <div className="col-span-2">
+        <div className="md:col-span-2">
           <label className="block text-sm text-gray-300 mb-1">Name</label>
           <input
             type="text"
