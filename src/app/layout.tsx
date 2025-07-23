@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
+import { APP_VERSION } from "@/utils/version";
 
 export const metadata = {
   title: "Combat Tracker",
