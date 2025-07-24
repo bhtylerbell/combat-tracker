@@ -17,7 +17,7 @@ export default function CombatPage() {
   const [turnIndex, setTurnIndex] = useState(0);
   const [round, setRound] = useState(1);
   const [timer, setTimer] = useState<number>(0);
-  const version = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0";
+  const version = "07/23/2025";
 
   // Timer state loaded from localStorage
   useEffect(() => {
@@ -245,16 +245,26 @@ export default function CombatPage() {
               )}
             </div>
 
-            <div className="bottom-4 left-4">
+            <div className="relative md:fixed bottom-4">
               <button
                 type="button"
                 onClick={() => setShowConfirmClear(true)}
-                className="mt-4 text-sm text-red-300 hover:text-red-400 w-full"
+                className="mt-4 text-sm text-red-300 hover:text-red-400"
               >
-                🧹 Clear Combat
+                Clear Combat
               </button>
-              <div className="mt-4 text-xs text-white-300 hover:text-red-400 w-full">
-                Version: {version}
+              <div className="mt-10 text-xs text-white-300 w-full">
+                Follow the project on{" "}
+                <a
+                  href="https://github.com/bhtylerbell/combat-tracker.git"
+                  className="text-red-300 hover:text-red-400"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GitHub
+                </a>
+                <br />
+                Build Date: {version}
               </div>
             </div>
           </>

@@ -53,6 +53,23 @@ export default function CombatantCard({
       ? "animate-flash-heal"
       : "";
 
+  const hpPercent =
+    combatant.maxHP > 0
+      ? Math.max(
+          0,
+          Math.min(100, (combatant.currentHP / combatant.maxHP) * 100)
+        )
+      : 0;
+
+      let hpColor = "rgba(11, 60, 29, 1)"; // green by default
+  if (hpPercent <= 25) {
+    hpColor = "rgba(96, 41, 41, 1)"; // red
+  } else if (hpPercent <= 50) {
+    hpColor = "rgba(96, 75, 13, 1)"; // yellow
+  } else if (hpPercent <= 75) {
+    hpColor = "rgba(11, 60, 29, 1)"; // medium green
+  }
+
   const COMMON_CONDITIONS = [
     "Blinded",
     "Charmed",
@@ -152,12 +169,22 @@ export default function CombatantCard({
         combatant.type === "PC"
           ? "bg-blue-800/30"
           : combatant.type === "NPC"
-          ? "bg-violet-800/30"
+          ? "bg-blue-800/30" //violet-800/30
           : combatant.type === "Monster"
-          ? "bg-red-800/30"
+          ? "bg-blue-800/30" //red-800/30
           : "bg-blue-800"
       } ${shouldGrayOut ? "opacity-50 grayscale" : ""} ${feedbackClass}`}
     >
+      <div
+        className="absolute top-0 left-0 h-full z-0"
+        style={{
+          width: `${hpPercent}%`,
+          backgroundColor: hpColor,
+          transition: "width 0.3s ease",
+        }}
+      ></div>
+
+      <div className="relative z-10">      
       <button
         onClick={() => onRemove(combatant.id)}
         className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xs font-bold"
@@ -341,8 +368,7 @@ export default function CombatantCard({
           })}
         </div>
       )}
-
-      
+      </div>
 
       {combatant.notes && (
         <p className="text-gray-400 text-xs italic mt-2">{combatant.notes}</p>
