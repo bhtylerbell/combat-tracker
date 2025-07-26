@@ -6,22 +6,18 @@ import CombatantCard from "@/components/CombatantCard";
 import { Combatant } from "@/types/combatant";
 import { useEffect } from "react";
 import { Analytics } from "@vercel/analytics/next";
+import { 
+  primaryButton, 
+  secondaryButton, 
+  dangerButton,
+  smallSuccess,
+  smallWarning,
+  smallDanger,
+  smallSecondary 
+} from "@/styles/buttonStyles";
 
 export default function CombatPage() {
-  // Button styling constants
-  const buttonBase = "px-4 py-2 rounded-md shadow text-white";
-  const primaryButton = `${buttonBase} bg-blue-600 hover:bg-blue-500`;
-  const secondaryButton = `${buttonBase} bg-gray-700 hover:bg-gray-600`;
-  const dangerButton = `${buttonBase} bg-red-600 hover:bg-red-500`;
-  const warningButton = `${buttonBase} bg-yellow-600 hover:bg-yellow-500`;
-  const successButton = `${buttonBase} bg-green-600 hover:bg-green-500`;
-
-  // Small button variant
-  const smallButton = "px-2 py-1 text-sm rounded text-white";
-  const smallSecondary = `${smallButton} bg-gray-700 hover:bg-gray-600`;
-  const smallDanger = `${smallButton} bg-red-600/50 hover:bg-red-500`;
-  const smallWarning = `${smallButton} bg-yellow-600/50 hover:bg-yellow-500`;
-  const smallSuccess = `${smallButton} bg-green-600/50 hover:bg-green-500`;
+ 
 
   // Form state
   const STORAGE_KEY = "combat_tracker_state";
@@ -32,7 +28,7 @@ export default function CombatPage() {
   const [turnIndex, setTurnIndex] = useState(0);
   const [round, setRound] = useState(1);
   const [timer, setTimer] = useState<number>(0);
-  const version = "07/23/2025";
+  const version = "07/26/2025";
 
   // Timer state loaded from localStorage
   useEffect(() => {
