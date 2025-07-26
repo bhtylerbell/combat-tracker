@@ -177,7 +177,7 @@ export default function CombatantCard({
       } ${shouldGrayOut ? "opacity-50 grayscale" : ""} ${feedbackClass}`}
     >
       <div
-        className="absolute top-0 left-0 h-full z-0"
+        className="absolute top-0 left-0 h-full z-0 rounded-lg"
         style={{
           width: `${hpPercent}%`,
           backgroundColor: hpColor,
