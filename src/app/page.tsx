@@ -8,6 +8,21 @@ import { useEffect } from "react";
 import { Analytics } from "@vercel/analytics/next";
 
 export default function CombatPage() {
+  // Button styling constants
+  const buttonBase = "px-4 py-2 rounded-md shadow text-white";
+  const primaryButton = `${buttonBase} bg-blue-600 hover:bg-blue-500`;
+  const secondaryButton = `${buttonBase} bg-gray-700 hover:bg-gray-600`;
+  const dangerButton = `${buttonBase} bg-red-600 hover:bg-red-500`;
+  const warningButton = `${buttonBase} bg-yellow-600 hover:bg-yellow-500`;
+  const successButton = `${buttonBase} bg-green-600 hover:bg-green-500`;
+
+  // Small button variant
+  const smallButton = "px-2 py-1 text-sm rounded text-white";
+  const smallSecondary = `${smallButton} bg-gray-700 hover:bg-gray-600`;
+  const smallDanger = `${smallButton} bg-red-600/50 hover:bg-red-500`;
+  const smallWarning = `${smallButton} bg-yellow-600/50 hover:bg-yellow-500`;
+  const smallSuccess = `${smallButton} bg-green-600/50 hover:bg-green-500`;
+
   // Form state
   const STORAGE_KEY = "combat_tracker_state";
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -143,7 +158,8 @@ export default function CombatPage() {
     <div className="min-h-screen flex">
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-4 left-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-md shadow hover:bg-gray-700 focus:outline-none"
+        className={`fixed top-4 left-4 z-50 ${secondaryButton} focus:outline-none`}
+        aria-label={isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
       >
         {isSidebarOpen ? "← Hide" : "→ Show"}
       </button>
@@ -154,13 +170,13 @@ export default function CombatPage() {
       <aside
         className={`transition-all duration-300 ${
           isSidebarOpen
-            ? "w-full md:w-1/3 lg:w-1/4 p-4"
+            ? "w-full md:w-1/3 lg:w-1/4"
             : "w-0 p-0 overflow-hidden"
         } sticky top-0 h-screen border-r border-gray-700 bg-gray-900`}
       >
         {isSidebarOpen && (
-          <>
-            <div className="flex-1 overflow-y-auto">
+          <div className="h-full flex flex-col relative">
+            <div className="flex-1 overflow-y-auto p-4">
               {/* Round Tracker */}
               <div className="mb-6 text-center">
                 <h2 className="text-lg font-semibold text-blue-400 mb-2">
@@ -170,7 +186,7 @@ export default function CombatPage() {
                   <button
                     type="button"
                     onClick={() => setRound((r) => Math.max(1, r - 1))}
-                    className="px-2 py-1 text-sm bg-gray-700 text-white rounded hover:bg-gray-600"
+                    className={smallSecondary}
                   >
                     -1
                   </button>
@@ -178,7 +194,7 @@ export default function CombatPage() {
                   <button
                     type="button"
                     onClick={() => setRound((r) => r + 1)}
-                    className="px-2 py-1 text-sm bg-gray-700 text-white rounded hover:bg-gray-600"
+                    className={smallSecondary}
                   >
                     +1
                   </button>
@@ -189,9 +205,8 @@ export default function CombatPage() {
                 onAdd={addCombatant}
                 combatantCount={combatants.length}
               />
-            </div>
 
-            {/* Combat Timer */}
+{/* Combat Timer */}
             <div className="mt-6 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
               <h2 className="text-lg font-semibold text-blue-400">
                 Combat Timer
@@ -202,13 +217,13 @@ export default function CombatPage() {
               <div className="flex justify-center gap-2">
                 <button
                   onClick={() => setIsTimerRunning(true)}
-                  className="px-2 py-1 text-sm bg-green-600/50 text-white rounded hover:bg-green-500"
+                  className={smallSuccess}
                 >
                   Start
                 </button>
                 <button
                   onClick={() => setIsTimerRunning(false)}
-                  className="px-2 py-1 text-sm bg-yellow-600/50 text-white rounded hover:bg-yellow-500"
+                  className={smallWarning}
                 >
                   Stop
                 </button>
@@ -217,15 +232,17 @@ export default function CombatPage() {
                     setIsTimerRunning(false);
                     setTimer(0);
                   }}
-                  className="px-2 py-1 text-sm bg-red-600/50 text-white rounded hover:bg-red-500"
+                  className={smallDanger}
                 >
                   Reset
                 </button>
               </div>
+
+              
             </div>
 
             {/* Dice Roller */}
-            <div className="mt-6 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
+            <div className="mt-6 mb-32 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
               <h2 className="text-lg font-semibold text-blue-400">
                 Dice Roller
               </h2>
@@ -234,7 +251,7 @@ export default function CombatPage() {
                   <button
                     key={sides}
                     onClick={() => rollDice(sides)}
-                    className="px-2 py-1 bg-gray-700 text-white text-sm rounded hover:bg-gray-600"
+                    className={smallSecondary}
                   >
                     d{sides}
                   </button>
@@ -244,16 +261,19 @@ export default function CombatPage() {
                 <p className="text-white text-sm">Result: {diceResult}</p>
               )}
             </div>
+            </div>
 
-            <div className="relative md:fixed bottom-4">
+            
+
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-900 border-t border-gray-700">
               <button
                 type="button"
                 onClick={() => setShowConfirmClear(true)}
-                className="mt-4 text-sm text-red-300 hover:text-red-400"
+                className={`${smallDanger} w-full mb-4`}
               >
                 Clear Combat
               </button>
-              <div className="mt-10 text-xs text-white-300 w-full">
+              <div className="text-xs text-gray-400">
                 Follow the project on{" "}
                 <a
                   href="https://github.com/bhtylerbell/combat-tracker.git"
@@ -267,7 +287,7 @@ export default function CombatPage() {
                 Build Date: {version}
               </div>
             </div>
-          </>
+          </div>
         )}
       </aside>
 
@@ -306,7 +326,7 @@ export default function CombatPage() {
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => setShowConfirmClear(false)}
-                  className="px-4 py-1 text-sm text-gray-300 bg-gray-700 hover:bg-gray-600 rounded"
+                  className={secondaryButton}
                 >
                   Cancel
                 </button>
@@ -318,7 +338,7 @@ export default function CombatPage() {
                     localStorage.removeItem(STORAGE_KEY);
                     setShowConfirmClear(false);
                   }}
-                  className="px-4 py-1 text-sm bg-red-600 hover:bg-red-500 text-white rounded"
+                  className={dangerButton}
                 >
                   Confirm
                 </button>
@@ -332,13 +352,13 @@ export default function CombatPage() {
         <div className="fixed bottom-4 right-4 flex gap-2 z-50">
           <button
             onClick={previousTurn}
-            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md shadow"
+            className={secondaryButton}
           >
             Previous Turn
           </button>
           <button
             onClick={nextTurn}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md shadow"
+            className={primaryButton}
           >
             Next Turn
           </button>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Combatant, CombatantType } from "@/types/combatant";
 import { v4 as uuidv4 } from "uuid";
+import { primaryButton } from "@/styles/buttonStyles";
 
 interface Props {
   onAdd: (combatant: Combatant) => void;
@@ -133,7 +134,7 @@ export default function AddCombatantForm({ onAdd, combatantCount }: Props) {
       <button
         type="submit"
         disabled={combatantCount >= 50}
-        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-md transition duration-150 disabled:opacity-50"
+        className={`w-full ${primaryButton} disabled:opacity-50`}
       >
         Add Combatant
       </button>

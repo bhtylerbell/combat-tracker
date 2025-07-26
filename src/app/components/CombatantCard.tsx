@@ -1,5 +1,6 @@
 import { Combatant } from "@/types/combatant";
 import { useState, useRef, useEffect } from "react";
+import { smallDanger, smallSuccess, smallSecondary } from "@/styles/buttonStyles";
 
 interface Props {
   combatant: Combatant;
@@ -280,11 +281,7 @@ export default function CombatantCard({
           <button
             key={n}
             onClick={() => applyHPChange(n)}
-            className={`px-2 py-1 rounded border border-gray-600 text-xs font-medium ${
-              n < 0
-                ? "text-red-200 bg-gray-700 hover:bg-gray-600"
-                : "text-emerald-200 bg-gray-700 hover:bg-gray-600"
-            }`}
+            className={n < 0 ? smallDanger : smallSuccess}
           >
             {n > 0 ? `+${n}` : n}
           </button>
@@ -297,13 +294,13 @@ export default function CombatantCard({
         />
         <button
           onClick={() => applyHPChange(-adjustValue)}
-          className="text-xs px-2 py-1 rounded bg-gray-700 border border-gray-600 text-red-200 hover:bg-gray-600"
+          className={smallDanger}
         >
           -DMG
         </button>
         <button
           onClick={() => applyHPChange(adjustValue)}
-          className="text-xs px-2 py-1 rounded bg-gray-700 border border-gray-600 text-emerald-200 hover:bg-gray-600"
+          className={smallSuccess}
         >
           +Heal
         </button>
@@ -336,7 +333,7 @@ export default function CombatantCard({
 
       {/* Toggleable Conditions */}
       <button
-        className="text-xs text-blue-400 hover:underline mb-2"
+        className={`${smallSecondary} text-blue-400 hover:text-blue-300 mb-2`}
         onClick={() => setShowConditions((prev) => !prev)}
       >
         {showConditions ? "Hide Conditions" : "Show Common Conditions"}
@@ -356,10 +353,8 @@ export default function CombatantCard({
                     updateStatuses([...current, condition]);
                   }
                 }}
-                className={`px-2 py-0.5 rounded-full text-xs font-medium border transition ${
-                  isActive
-                    ? "bg-blue-600 text-white border-blue-400"
-                    : "bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600"
+                className={`${smallSecondary} ${
+                  isActive ? "!bg-blue-600 border-blue-400" : ""
                 }`}
               >
                 {condition}
