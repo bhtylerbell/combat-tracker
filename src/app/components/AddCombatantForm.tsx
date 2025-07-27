@@ -118,16 +118,18 @@ export default function AddCombatantForm({ onAdd, combatantCount }: Props) {
           </>
         )}
 
-        {/* Notes */}
-        <div className="md:col-span-3">
-          <label className="block text-sm text-gray-300 mb-1">Notes</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full rounded-md border border-gray-600 bg-gray-900 text-gray-100 px-3 py-2 h-20 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Anything special about this combatant?"
-          />
-        </div>
+        {/* Notes - Only show for Lair Actions */}
+        {type === "Lair Action" && (
+          <div className="md:col-span-3">
+            <label className="block text-sm text-gray-300 mb-1">Notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full rounded-md border border-gray-600 bg-gray-900 text-gray-100 px-3 py-2 h-20 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter lair action details..."
+            />
+          </div>
+        )}
       </div>
 
       {/* Submit Button */}

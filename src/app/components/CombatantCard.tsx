@@ -364,10 +364,6 @@ export default function CombatantCard({
         </div>
       )}
       </div>
-
-      {combatant.notes && (
-        <p className="text-gray-400 text-xs italic mt-2">{combatant.notes}</p>
-      )}
     </div>
   );
 }

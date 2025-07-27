@@ -1,26 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AddCombatantForm from "@/components/AddCombatantForm";
 import CombatantCard from "@/components/CombatantCard";
 import { Combatant } from "@/types/combatant";
-import { useEffect } from "react";
 import { Analytics } from "@vercel/analytics/next";
-import { 
-  primaryButton, 
-  secondaryButton, 
+import { useCombatSync } from "@/utils/useCombatSync";
+import {
+  primaryButton,
+  secondaryButton,
   dangerButton,
   smallSuccess,
   smallWarning,
   smallDanger,
-  smallSecondary 
+  smallSecondary,
 } from "@/styles/buttonStyles";
 
 export default function CombatPage() {
- 
-
-  // Form state
-  const STORAGE_KEY = "combat_tracker_state";
   const [hasLoaded, setHasLoaded] = useState(false);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [diceResult, setDiceResult] = useState<string>("");
@@ -30,11 +26,7 @@ export default function CombatPage() {
   const [timer, setTimer] = useState<number>(0);
   const version = "07/26/2025";
 
-  // Timer state loaded from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("combat_timer");
-    if (saved) setTimer(parseInt(saved, 10));
-  }, []);
+  const { saveCombatState, loadCombatState, isLoading, error } = useCombatSync();
 
   // Controls whether timer is running
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -56,113 +48,143 @@ export default function CombatPage() {
   }, [isTimerRunning]);
 
   // Formats time in HH:MM:SS for timer display
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(
-      2,
-      "0"
-    )}:${String(secs).padStart(2, "0")}`;
-  };
+  const formatTime = useCallback(
+    (seconds: number) => {
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(
+        2,
+        "0"
+      )}:${String(secs).padStart(2, "0")}`;
+    },
+    []
+  );
 
   // Add combatant to initiative list in initiative order
-  const addCombatant = (newC: Combatant) => {
-    const updated = [...combatants, newC].sort(
-      (a, b) => b.initiative - a.initiative
-    );
-    setCombatants(updated);
-  };
+  const addCombatant = useCallback(
+    (newC: Combatant) => {
+      setCombatants((prev) => {
+        const updated = [...prev, newC].sort(
+          (a, b) => b.initiative - a.initiative
+        );
+        return updated;
+      });
+    },
+    []
+  ); // Empty dependency array since we're using the function form of setCombatants
 
   // Check if sidebar is expanded or not
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Inside CombatPage component
+  // Load combat state
   useEffect(() => {
-    if (!hasLoaded) return; // ⛔ prevent premature saving
-
-    const state = {
-      combatants,
-      turnIndex,
-      round,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [combatants, turnIndex, round, hasLoaded]);
-
-  // Load previous combat session if one exists
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    async function loadState() {
       try {
-        const parsed = JSON.parse(saved);
-        setCombatants(parsed.combatants || []);
-        setTurnIndex(parsed.turnIndex || 0);
-        setRound(parsed.round || 1);
-      } catch (err) {
-        console.error("Failed to load combat state:", err);
+        const state = await loadCombatState();
+        if (state && Array.isArray(state.combatants)) {
+          setCombatants(state.combatants);
+          setTurnIndex(state.turnIndex ?? 0);
+          setRound(state.round ?? 1);
+          setTimer(state.timer ?? 0);
+        }
+      } catch (error) {
+        console.error("Failed to load combat state:", error);
+      } finally {
+        setHasLoaded(true);
       }
     }
-    setHasLoaded(true); // ✅ Only after load is complete
-  }, []);
 
-  // Set net turn
-  const nextTurn = () => {
+    if (!isLoading) {
+      loadState();
+    }
+  }, [isLoading, loadCombatState]); // Only run on initial load
+
+  // Save combat state
+  useEffect(() => {
+    if (!hasLoaded) return;
+
+    const saveTimeout = setTimeout(async () => {
+      try {
+        await saveCombatState({
+          combatants,
+          turnIndex,
+          round,
+          timer,
+        });
+      } catch (error) {
+        console.error("Failed to save combat state:", error);
+      }
+    }, 1000); // Increased debounce time
+
+    return () => clearTimeout(saveTimeout);
+  }, [hasLoaded, combatants, turnIndex, round, timer, saveCombatState]);
+
+  // Combat turn management
+  const nextTurn = useCallback(() => {
     const nextIndex = (turnIndex + 1) % combatants.length;
-
     if (nextIndex === 0) {
-      setRound((r) => r + 1); // Will only run once
+      setRound((r: number) => r + 1);
     }
-
     setTurnIndex(nextIndex);
-  };
+  }, [combatants.length, turnIndex]);
 
-  // Set previous turn
-  const previousTurn = () => {
-    setTurnIndex((prev) => {
+  const previousTurn = useCallback(() => {
+    setTurnIndex((prev: number) => {
       const newIndex = (prev - 1 + combatants.length) % combatants.length;
-
-      // If we're wrapping around to the end of the list, decrement the round
       if (prev === 0) {
-        setRound((r) => Math.max(1, r - 1));
+        setRound((r: number) => Math.max(1, r - 1));
       }
-
       return newIndex;
     });
-  };
+  }, [combatants.length]);
 
-  // Update combatant initiative live
-  const updateCombatant = (updated: Combatant) => {
-    setCombatants((prev) =>
-      [...prev.map((c) => (c.id === updated.id ? updated : c))].sort(
-        (a, b) => b.initiative - a.initiative
-      )
-    );
-  };
+  // Combatant management
+  const updateCombatant = useCallback(
+    (updated: Combatant) => {
+      setCombatants((prev: Combatant[]) =>
+        [...prev.map((c) => (c.id === updated.id ? updated : c))].sort(
+          (a, b) => b.initiative - a.initiative
+        )
+      );
+    },
+    []
+  );
 
-  // Remove combatant from initiative list
-  const removeCombatant = (id: string) => {
-    setCombatants((prev) => prev.filter((c) => c.id !== id));
-  };
+  const removeCombatant = useCallback(
+    (id: string) => {
+      setCombatants((prev: Combatant[]) => prev.filter((c) => c.id !== id));
+    },
+    []
+  );
 
   // Dice roller
-  const rollDice = (sides: number) => {
+  const rollDice = useCallback((sides: number) => {
     const roll = Math.floor(Math.random() * sides) + 1;
     setDiceResult(`d${sides}: ${roll}`);
-  };
+  }, []);
+
+  if (!hasLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex">
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className={`fixed top-4 left-4 z-50 ${secondaryButton} focus:outline-none`}
-        aria-label={isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
-      >
-        {isSidebarOpen ? "← Hide" : "→ Show"}
-      </button>
-
       <Analytics />
+      {!isSidebarOpen && (
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className={`fixed top-4 left-4 z-50 ${secondaryButton} focus:outline-none`}
+          aria-label="Show Sidebar"
+        >
+          → Show
+        </button>
+      )}
       {/* Sidebar */}
-
       <aside
         className={`transition-all duration-300 ${
           isSidebarOpen
@@ -173,93 +195,72 @@ export default function CombatPage() {
         {isSidebarOpen && (
           <div className="h-full flex flex-col relative">
             <div className="flex-1 overflow-y-auto p-4">
-              {/* Round Tracker */}
-              <div className="mb-6 text-center">
-                <h2 className="text-lg font-semibold text-blue-400 mb-2">
-                  Round Tracker
-                </h2>
-                <div className="flex justify-center items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRound((r) => Math.max(1, r - 1))}
-                    className={smallSecondary}
-                  >
-                    -1
-                  </button>
-                  <span className="text-white text-xl font-bold">{round}</span>
-                  <button
-                    type="button"
-                    onClick={() => setRound((r) => r + 1)}
-                    className={smallSecondary}
-                  >
-                    +1
-                  </button>
-                </div>
-              </div>
-
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`mb-4 ${secondaryButton} focus:outline-none`}
+                aria-label="Hide Sidebar"
+              >
+                ← Hide
+              </button>
               <AddCombatantForm
                 onAdd={addCombatant}
                 combatantCount={combatants.length}
               />
 
-{/* Combat Timer */}
-            <div className="mt-6 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
-              <h2 className="text-lg font-semibold text-blue-400">
-                Combat Timer
-              </h2>
-              <p className="text-white text-2xl text-center font-mono">
-                {formatTime(timer)}
-              </p>
-              <div className="flex justify-center gap-2">
-                <button
-                  onClick={() => setIsTimerRunning(true)}
-                  className={smallSuccess}
-                >
-                  Start
-                </button>
-                <button
-                  onClick={() => setIsTimerRunning(false)}
-                  className={smallWarning}
-                >
-                  Stop
-                </button>
-                <button
-                  onClick={() => {
-                    setIsTimerRunning(false);
-                    setTimer(0);
-                  }}
-                  className={smallDanger}
-                >
-                  Reset
-                </button>
-              </div>
-
-              
-            </div>
-
-            {/* Dice Roller */}
-            <div className="mt-6 mb-32 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
-              <h2 className="text-lg font-semibold text-blue-400">
-                Dice Roller
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {[4, 6, 8, 10, 12, 20, 100].map((sides) => (
+              {/* Combat Timer */}
+              <div className="mt-6 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
+                <h2 className="text-lg font-semibold text-blue-400">
+                  Combat Timer
+                </h2>
+                <p className="text-white text-2xl text-center font-mono">
+                  {formatTime(timer)}
+                </p>
+                <div className="flex justify-center gap-2">
                   <button
-                    key={sides}
-                    onClick={() => rollDice(sides)}
-                    className={smallSecondary}
+                    onClick={() => setIsTimerRunning(true)}
+                    className={smallSuccess}
                   >
-                    d{sides}
+                    Start
                   </button>
-                ))}
+                  <button
+                    onClick={() => setIsTimerRunning(false)}
+                    className={smallWarning}
+                  >
+                    Stop
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsTimerRunning(false);
+                      setTimer(0);
+                    }}
+                    className={smallDanger}
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
-              {diceResult && (
-                <p className="text-white text-sm">Result: {diceResult}</p>
-              )}
-            </div>
-            </div>
 
-            
+              {/* Dice Roller */}
+              <div className="mt-6 mb-32 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
+                <h2 className="text-lg font-semibold text-blue-400">
+                  Dice Roller
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {[4, 6, 8, 10, 12, 20, 100].map((sides) => (
+                    <button
+                      key={sides}
+                      onClick={() => rollDice(sides)}
+                      className={smallSecondary}
+                    >
+                      d{sides}
+                    </button>
+                  ))}
+                </div>
+                {diceResult && (
+                  <p className="text-white text-sm">Result: {diceResult}</p>
+                )}
+              </div>
+            </div>
 
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-900 border-t border-gray-700">
               <button
@@ -289,22 +290,47 @@ export default function CombatPage() {
 
       {/* Main Combat Area */}
       <main className="flex-1 p-6 space-y-4 overflow-y-auto">
-        <h1 className="text-2xl font-bold text-white mb-4">Initiative Order</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-white">Initiative Order</h1>
+
+          {/* Round Tracker */}
+          <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2">
+            <span className="text-blue-400 font-semibold">Round</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setRound((r) => Math.max(1, r - 1))}
+                className={smallSecondary}
+              >
+                -1
+              </button>
+              <span className="text-white font-bold min-w-[2ch] text-center">
+                {round}
+              </span>
+              <button
+                type="button"
+                onClick={() => setRound((r) => r + 1)}
+                className={smallSecondary}
+              >
+                +1
+              </button>
+            </div>
+          </div>
+        </div>
 
         {combatants.length === 0 && (
-          <p className="text-gray-400">
-            No combatants yet. Add some on the left!
-          </p>
+          <p className="text-gray-400">No combatants yet. Add some on the left!</p>
         )}
 
         <div className="space-y-3">
           {combatants.map((c, idx) => (
             <CombatantCard
-              key={c.id}
+              // Use both id and initiative for a more stable key
+              key={`${c.id}-${c.initiative}`}
               combatant={c}
               isActive={idx === turnIndex}
               onUpdate={updateCombatant}
-              onRemove={removeCombatant} // <--- ✅ Add this
+              onRemove={removeCombatant}
             />
           ))}
         </div>
@@ -327,11 +353,17 @@ export default function CombatPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setCombatants([]);
                     setTurnIndex(0);
                     setRound(1);
-                    localStorage.removeItem(STORAGE_KEY);
+                    setTimer(0);
+                    await saveCombatState({
+                      combatants: [],
+                      turnIndex: 0,
+                      round: 1,
+                      timer: 0,
+                    });
                     setShowConfirmClear(false);
                   }}
                   className={dangerButton}
@@ -346,16 +378,10 @@ export default function CombatPage() {
       {/* Navigation Buttons */}
       {combatants.length >= 2 && (
         <div className="fixed bottom-4 right-4 flex gap-2 z-50">
-          <button
-            onClick={previousTurn}
-            className={secondaryButton}
-          >
+          <button onClick={previousTurn} className={secondaryButton}>
             Previous Turn
           </button>
-          <button
-            onClick={nextTurn}
-            className={primaryButton}
-          >
+          <button onClick={nextTurn} className={primaryButton}>
             Next Turn
           </button>
         </div>
