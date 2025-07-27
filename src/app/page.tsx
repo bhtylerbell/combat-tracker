@@ -209,24 +209,27 @@ export default function CombatPage() {
 
               {/* Combat Timer */}
               <div className="mt-6 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
-                <h2 className="text-lg font-semibold text-blue-400">
-                  Combat Timer
+                <h2 className="text-lg font-semibold text-blue-400 flex items-center justify-between">
+                  <span>Combat Timer</span>
+                  {isTimerRunning ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-green-400">
+                      <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-yellow-400">
+                      <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
+                    </svg>
+                  )}
                 </h2>
                 <p className="text-white text-2xl text-center font-mono">
                   {formatTime(timer)}
                 </p>
                 <div className="flex justify-center gap-2">
                   <button
-                    onClick={() => setIsTimerRunning(true)}
-                    className={smallSuccess}
+                    onClick={() => setIsTimerRunning(!isTimerRunning)}
+                    className={isTimerRunning ? smallWarning : smallSuccess}
                   >
-                    Start
-                  </button>
-                  <button
-                    onClick={() => setIsTimerRunning(false)}
-                    className={smallWarning}
-                  >
-                    Stop
+                    {isTimerRunning ? 'Pause' : 'Start'}
                   </button>
                   <button
                     onClick={() => {
@@ -282,6 +285,24 @@ export default function CombatPage() {
                 </a>
                 <br />
                 Build Date: {version}
+                <div className="mt-2 text-[10px] text-gray-500">
+                  <p>
+          This website uses content from the SRD and is licensed under the{" "}
+          <a
+            href="https://media.wizards.com/2016/downloads/DND/SRD-OGL_V5.1.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300"
+          >
+            Open Gaming License Version 1.0a
+          </a>
+        </p>
+        <p className="mt-1">
+          Dungeons & Dragons, D&D, their respective logos, and all Wizards titles
+          and characters are property of Wizards of the Coast LLC in the U.S.A. and
+          other countries. ©2024 Wizards.
+        </p>
+                </div>
               </div>
             </div>
           </div>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Combatant, CombatantType } from "@/types/combatant";
 import { v4 as uuidv4 } from "uuid";
 import { primaryButton } from "@/styles/buttonStyles";
+import { findMonster, searchMonsters, Monster } from "@/utils/srdMonsters";
 
 interface Props {
   onAdd: (combatant: Combatant) => void;
@@ -17,6 +18,53 @@ export default function AddCombatantForm({ onAdd, combatantCount }: Props) {
   const [hp, setHp] = useState<number>(10);
   const [ac, setAc] = useState<number>(10);
   const [notes, setNotes] = useState("");
+  const [suggestions, setSuggestions] = useState<Monster[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Handle monster name input and lookup
+  useEffect(() => {
+    if (type === "Monster" && name.length > 0) {
+      const results = searchMonsters(name);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [name, type]);
+
+  // Handle clicking outside suggestions
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setName(newName);
+
+    if (type === "Monster") {
+      const monster = findMonster(newName);
+      if (monster) {
+        setHp(monster.hp);
+        setAc(monster.ac);
+      }
+    }
+  };
+
+  const handleSuggestionClick = (monster: Monster) => {
+    setName(monster.name);
+    setHp(monster.hp);
+    setAc(monster.ac);
+    setShowSuggestions(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,14 +100,33 @@ export default function AddCombatantForm({ onAdd, combatantCount }: Props) {
         {/* Name */}
         <div className="md:col-span-2">
           <label className="block text-sm text-gray-300 mb-1">Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-md border border-gray-600 bg-gray-900 text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Combatant name"
-            required
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={name}
+              onChange={handleNameChange}
+              className="w-full rounded-md border border-gray-600 bg-gray-900 text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={type === "Monster" ? "Type to search monsters..." : "Combatant name"}
+              required
+            />
+            {showSuggestions && suggestions.length > 0 && (
+              <div 
+                ref={suggestionsRef}
+                className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+              >
+                {suggestions.map((monster) => (
+                  <button
+                    key={monster.name}
+                    type="button"
+                    onClick={() => handleSuggestionClick(monster)}
+                    className="w-full px-4 py-2 text-left text-gray-200 hover:bg-gray-700 focus:outline-none focus:bg-gray-700"
+                  >
+                    {monster.name} (AC: {monster.ac}, HP: {monster.hp})
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Type */}
