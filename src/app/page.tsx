@@ -159,9 +159,18 @@ export default function CombatPage() {
   );
 
   // Dice roller
-  const rollDice = useCallback((sides: number) => {
-    const roll = Math.floor(Math.random() * sides) + 1;
-    setDiceResult(`d${sides}: ${roll}`);
+  const rollDice = useCallback((sides: number, count: number = 1) => {
+    const rolls = Array(count).fill(0).map(() => 
+      Math.floor(Math.random() * sides) + 1
+    );
+    
+    if (count === 2 && sides === 20) {
+      // For advantage/disadvantage rolls, show both numbers
+      setDiceResult(`2d20: ${rolls[0]}, ${rolls[1]}`);
+    } else {
+      const total = rolls.reduce((sum, roll) => sum + roll, 0);
+      setDiceResult(`${count}d${sides}: ${total}`);
+    }
   }, []);
 
   if (!hasLoaded) {
@@ -194,7 +203,7 @@ export default function CombatPage() {
       >
         {isSidebarOpen && (
           <div className="h-full flex flex-col relative">
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 pb-40">
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className={`mb-4 ${secondaryButton} focus:outline-none`}
@@ -208,7 +217,7 @@ export default function CombatPage() {
               />
 
               {/* Combat Timer */}
-              <div className="mt-6 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
+              <div className="mt-6 mb-6 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
                 <h2 className="text-lg font-semibold text-blue-400 flex items-center justify-between">
                   <span>Combat Timer</span>
                   {isTimerRunning ? (
@@ -244,24 +253,59 @@ export default function CombatPage() {
               </div>
 
               {/* Dice Roller */}
-              <div className="mt-6 mb-32 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
-                <h2 className="text-lg font-semibold text-blue-400">
+              <div className="mt-6 mb-24 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 space-y-4">
+                <h2 className="text-lg font-semibold text-blue-400 flex items-center gap-2">
                   Dice Roller
                 </h2>
-                <div className="flex flex-wrap gap-2">
+                
+                {/* Dice Grid */}
+                <div className="grid grid-cols-4 gap-2">
                   {[4, 6, 8, 10, 12, 20, 100].map((sides) => (
                     <button
                       key={sides}
                       onClick={() => rollDice(sides)}
-                      className={smallSecondary}
+                      className={`
+                        relative group h-12 
+                        bg-gray-700/50 hover:bg-gray-600/50 
+                        border border-gray-600 hover:border-gray-500
+                        rounded-lg transition-all duration-200
+                        flex items-center justify-center
+                        ${diceResult?.includes(`d${sides}:`) ? 'ring-2 ring-blue-500/50' : ''}
+                      `}
                     >
-                      d{sides}
+                      <span className="text-sm font-bold">d{sides}</span>
+                      {/* Hover Effect */}
+                      <div className="absolute -top-8 scale-0 group-hover:scale-100 transition-transform duration-200">
+                        <div className="bg-gray-900 text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                          Roll 1d{sides}
+                        </div>
+                      </div>
                     </button>
                   ))}
+                  {/* Quick Roll Multiple Dice */}
+                  <button
+                    onClick={() => rollDice(20, 2)}
+                    className="col-span-4 mt-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600 hover:border-gray-500 rounded-lg h-12 flex items-center justify-center gap-2 group transition-all duration-200"
+                  >
+                    <span className="text-sm font-bold">2d20</span>
+                    <span className="text-xs text-gray-400 group-hover:text-gray-300">(Advantage/Disadvantage)</span>
+                  </button>
                 </div>
+
+                {/* Results Display */}
                 {diceResult && (
-                  <p className="text-white text-sm">Result: {diceResult}</p>
+                  <div className="mt-4 bg-gray-900/50 rounded-lg p-3 border border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-blue-400 text-sm font-semibold">Result</span>
+                        <span className="text-xl font-bold">{diceResult.split(': ')[1]}</span>
+                      </div>
+                      <span className="text-gray-500 text-sm">{diceResult.split(': ')[0]}</span>
+                    </div>
+                  </div>
                 )}
+
+                
               </div>
             </div>
 
@@ -398,7 +442,7 @@ export default function CombatPage() {
       </main>
       {/* Navigation Buttons */}
       {combatants.length >= 2 && (
-        <div className="fixed bottom-4 right-4 flex gap-2 z-50">
+        <div className="fixed bottom-4 right-4 flex gap-2 z-40">
           <button onClick={previousTurn} className={secondaryButton}>
             Previous Turn
           </button>

@@ -140,7 +140,7 @@ export default function AddCombatantForm({ onAdd, combatantCount }: Props) {
             <option value="PC">Player</option>
             <option value="NPC">NPC</option>
             <option value="Monster">Monster</option>
-            <option value="Lair Action">Lair</option>
+            <option value="Lair">Lair</option>
           </select>
         </div>
 
@@ -157,7 +157,7 @@ export default function AddCombatantForm({ onAdd, combatantCount }: Props) {
         </div>
 
         {/* HP and AC - Only show if not Lair Action */}
-        {type !== "Lair Action" && (
+        {type !== "Lair" && (
           <>
             {/* HP */}
             <div>
@@ -186,7 +186,7 @@ export default function AddCombatantForm({ onAdd, combatantCount }: Props) {
         )}
 
         {/* Notes - Only show for Lair Actions */}
-        {type === "Lair Action" && (
+        {type === "Lair" && (
           <div className="md:col-span-3">
             <label className="block text-sm text-gray-300 mb-1">Notes</label>
             <textarea
