@@ -30,7 +30,7 @@ A modern, responsive combat tracker for D&D 5E and similar tabletop RPGs. Built 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/combat-tracker.git
+   git clone https://github.com/bhtylerbell/combat-tracker.git
    ```
 
 2. Install dependencies:
