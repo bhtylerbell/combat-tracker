@@ -24,7 +24,7 @@ export default function CombatPage() {
   const [turnIndex, setTurnIndex] = useState(0);
   const [round, setRound] = useState(1);
   const [timer, setTimer] = useState<number>(0);
-  const version = "07/27/2025";
+  const version = "07/30/2025";
 
   const { saveCombatState, loadCombatState, isLoading, error } = useCombatSync();
 
