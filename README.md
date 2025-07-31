@@ -24,6 +24,7 @@ A modern, responsive combat tracker for D&D 5E and similar tabletop RPGs. Built 
 ### Utility Tools
 
 - **Dice Roller**: Quick access to common dice (d4-d100)
+- **Export/Import**: Save and load combat states as JSON files for backup or sharing
 
 ## Getting Started
 
@@ -70,6 +71,19 @@ A modern, responsive combat tracker for D&D 5E and similar tabletop RPGs. Built 
 1. Click the status effect button on a combatant card
 2. Select from common conditions
 3. Effects are visually displayed on the combatant card
+
+### Export & Import
+
+**Exporting Combats:**
+1. Click the "Export/Import" button in the sidebar
+2. Click "Download Combat File" to save your current combat as a JSON file
+3. The file includes all combatants, turn order, round, and timer state
+
+**Importing Combats:**
+1. Click the "Export/Import" button in the sidebar
+2. Click "Choose Combat File" and select a previously exported JSON file
+3. The combat will be loaded, replacing your current state
+4. Useful for sharing encounters or resuming saved combats
 
 ### Persistence
 

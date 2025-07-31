@@ -76,6 +76,9 @@ export default function CombatPage() {
 
   // Check if sidebar is expanded or not
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // Import/Export modal state
+  const [showExportImport, setShowExportImport] = useState(false);
 
   // Load combat state
   useEffect(() => {
@@ -172,6 +175,74 @@ export default function CombatPage() {
       setDiceResult(`${count}d${sides}: ${total}`);
     }
   }, []);
+
+  // Export combat state
+  const exportCombat = useCallback(() => {
+    const combatState = {
+      combatants,
+      turnIndex,
+      round,
+      timer,
+      exportDate: new Date().toISOString(),
+      version
+    };
+    
+    const dataStr = JSON.stringify(combatState, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `combat-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [combatants, turnIndex, round, timer, version]);
+
+  // Import combat state
+  const importCombat = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const jsonString = e.target?.result as string;
+        const importedState = JSON.parse(jsonString);
+        
+        // Validate the imported data structure
+        if (!importedState.combatants || !Array.isArray(importedState.combatants)) {
+          alert('Invalid combat file format');
+          return;
+        }
+        
+        // Set the imported state
+        setCombatants(importedState.combatants);
+        setTurnIndex(importedState.turnIndex ?? 0);
+        setRound(importedState.round ?? 1);
+        setTimer(importedState.timer ?? 0);
+        
+        // Save to localStorage
+        await saveCombatState({
+          combatants: importedState.combatants,
+          turnIndex: importedState.turnIndex ?? 0,
+          round: importedState.round ?? 1,
+          timer: importedState.timer ?? 0,
+        });
+        
+        setShowExportImport(false);
+        alert(`Combat imported successfully! ${importedState.combatants.length} combatants loaded.`);
+      } catch (error) {
+        console.error('Failed to import combat:', error);
+        alert('Failed to import combat file. Please check the file format.');
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset the input value so the same file can be selected again
+    event.target.value = '';
+  }, [saveCombatState]);
 
   if (!hasLoaded) {
     return (
@@ -309,7 +380,21 @@ export default function CombatPage() {
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-900 border-t border-gray-700">
+            <div className="absolute bottom-0 left-0 right-0 p-4 pt-6 bg-gray-900 border-t border-gray-700">
+              {/* Export/Import Buttons */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setShowExportImport(true)}
+                  className={`${smallSecondary} flex-1 flex items-center justify-center gap-2`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l4.5 4.5a.75.75 0 01-1.06 1.06l-3.22-3.22V16.5a.75.75 0 01-1.5 0V4.81L8.03 8.03a.75.75 0 01-1.06-1.06l4.5-4.5zM3 15.75a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
+                  </svg>
+                  Export/Import
+                </button>
+              </div>
+              
               <button
                 type="button"
                 onClick={() => setShowConfirmClear(true)}
@@ -435,6 +520,74 @@ export default function CombatPage() {
                 >
                   Confirm
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Export/Import Modal */}
+        {showExportImport && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md border border-gray-600">
+              <h2 className="text-lg font-semibold text-blue-400 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <path fillRule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l4.5 4.5a.75.75 0 01-1.06 1.06l-3.22-3.22V16.5a.75.75 0 01-1.5 0V4.81L8.03 8.03a.75.75 0 01-1.06-1.06l4.5-4.5zM3 15.75a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
+                </svg>
+                Export & Import Combat
+              </h2>
+              
+              <div className="space-y-4">
+                {/* Export Section */}
+                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-2">Export Current Combat</h3>
+                  <p className="text-xs text-gray-400 mb-3">
+                    Save your current combat state as a JSON file to share or backup.
+                  </p>
+                  <button
+                    onClick={() => {
+                      exportCombat();
+                      setShowExportImport(false);
+                    }}
+                    className={`${primaryButton} w-full flex items-center justify-center gap-2`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path fillRule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l4.5 4.5a.75.75 0 01-1.06 1.06l-3.22-3.22V16.5a.75.75 0 01-1.5 0V4.81L8.03 8.03a.75.75 0 01-1.06-1.06l4.5-4.5zM3 15.75a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
+                    </svg>
+                    Download Combat File
+                  </button>
+                </div>
+
+                {/* Import Section */}
+                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-2">Import Combat</h3>
+                  <p className="text-xs text-gray-400 mb-3">
+                    Load a previously exported combat file. This will replace your current combat.
+                  </p>
+                  <div className="space-y-2">
+                    <label className={`${secondaryButton} w-full flex items-center justify-center gap-2 cursor-pointer`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                        <path fillRule="evenodd" d="M11.47 13.28a.75.75 0 001.06 0l4.5-4.5a.75.75 0 00-1.06-1.06L12.75 10.94V1.5a.75.75 0 00-1.5 0v9.44L8.03 7.72a.75.75 0 00-1.06 1.06l4.5 4.5zM3 15.75a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
+                      </svg>
+                      Choose Combat File
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={importCombat}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Close Button */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setShowExportImport(false)}
+                    className={secondaryButton}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
