@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useUser } from '@clerk/nextjs';
 import AddCombatantForm from "@/components/AddCombatantForm";
 import CombatantCard from "@/components/CombatantCard";
+import AuthModal from "@/components/AuthModal";
+import UserProfile from "@/components/UserProfile";
+import SavedCombats from "@/components/SavedCombats";
+import ToastContainer from "@/components/ToastContainer";
 import { Combatant } from "@/types/combatant";
+import { CombatState } from "@/types/database";
 import { Analytics } from "@vercel/analytics/next";
 import { useCombatSync } from "@/utils/useCombatSync";
+import { useToast } from "@/hooks/useToast";
 import {
   primaryButton,
   secondaryButton,
@@ -17,6 +24,8 @@ import {
 } from "@/styles/buttonStyles";
 
 export default function CombatPage() {
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { toasts, showSuccess, showError, showInfo, removeToast } = useToast();
   const [hasLoaded, setHasLoaded] = useState(false);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [diceResult, setDiceResult] = useState<string>("");
@@ -30,6 +39,19 @@ export default function CombatPage() {
 
   // Controls whether timer is running
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+  // Check if sidebar is expanded or not
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // Import/Export modal state
+  const [showExportImport, setShowExportImport] = useState(false);
+
+  // Auth modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'sign-in' | 'sign-up'>('sign-in');
+
+  // Saved combats modal state
+  const [showSavedCombats, setShowSavedCombats] = useState(false);
 
   // Save timer to localStorage whenever it changes
   useEffect(() => {
@@ -73,12 +95,6 @@ export default function CombatPage() {
     },
     []
   ); // Empty dependency array since we're using the function form of setCombatants
-
-  // Check if sidebar is expanded or not
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  
-  // Import/Export modal state
-  const [showExportImport, setShowExportImport] = useState(false);
 
   // Load combat state
   useEffect(() => {
@@ -244,6 +260,17 @@ export default function CombatPage() {
     event.target.value = '';
   }, [saveCombatState]);
 
+  // Load saved combat
+  const loadSavedCombat = useCallback(async (combatState: CombatState) => {
+    setCombatants(combatState.combatants);
+    setTurnIndex(combatState.turnIndex);
+    setRound(combatState.round);
+    setTimer(combatState.timer);
+    
+    // Save to localStorage
+    await saveCombatState(combatState);
+  }, [saveCombatState]);
+
   if (!hasLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -282,6 +309,43 @@ export default function CombatPage() {
               >
                 ← Hide
               </button>
+
+              {/* Authentication Section */}
+              {isLoaded && (
+                <div className="mb-6">
+                  {isSignedIn ? (
+                    <UserProfile onManageCombats={() => setShowSavedCombats(true)} />
+                  ) : (
+                    <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4">
+                      <h3 className="text-lg font-semibold text-blue-400 mb-3">Save Your Combats</h3>
+                      <p className="text-sm text-gray-400 mb-4">
+                        Create an account to save and manage your combat encounters across sessions.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setAuthMode('sign-up');
+                            setShowAuthModal(true);
+                          }}
+                          className={primaryButton}
+                        >
+                          Sign Up
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAuthMode('sign-in');
+                            setShowAuthModal(true);
+                          }}
+                          className={secondaryButton}
+                        >
+                          Sign In
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <AddCombatantForm
                 onAdd={addCombatant}
                 combatantCount={combatants.length}
@@ -592,6 +656,31 @@ export default function CombatPage() {
             </div>
           </div>
         )}
+
+        {/* Auth Modal */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          mode={authMode}
+          onSwitchMode={setAuthMode}
+        />
+
+        {/* Saved Combats Modal */}
+        {isSignedIn && (
+          <SavedCombats
+            isOpen={showSavedCombats}
+            onClose={() => setShowSavedCombats(false)}
+            onLoadCombat={loadSavedCombat}
+            currentCombatState={{
+              combatants,
+              turnIndex,
+              round,
+              timer,
+            }}
+            showSuccess={showSuccess}
+            showError={showError}
+          />
+        )}
       </main>
       {/* Navigation Buttons */}
       {combatants.length >= 2 && (
@@ -604,6 +693,9 @@ export default function CombatPage() {
           </button>
         </div>
       )}
+      
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }
