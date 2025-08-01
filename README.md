@@ -21,6 +21,13 @@ A modern, responsive combat tracker for D&D 5E and similar tabletop RPGs. Built 
 - **Status Effects**: Track conditions like Stunned, Poisoned, etc.
 - **Quick Remove**: Easily remove defeated combatants
 
+### User Accounts & Saved Combats
+
+- **Optional Registration**: Create an account to save combats across sessions
+- **Combat Library**: Save, name, and organize your encounters
+- **Cross-Session Sync**: Access your saved combats from any device
+- **Export/Import**: Share encounters with other DMs
+
 ### Utility Tools
 
 - **Dice Roller**: Quick access to common dice (d4-d100)
@@ -41,13 +48,28 @@ A modern, responsive combat tracker for D&D 5E and similar tabletop RPGs. Built 
    npm install
    ```
 
-3. Run the development server:
+3. Set up authentication (optional):
+
+   To enable user accounts and saved combats:
+   
+   a. Create a [Clerk](https://dashboard.clerk.com/) account
+   
+   b. Create a new application in Clerk
+   
+   c. Copy your keys to `.env.local`:
+   
+   ```bash
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here
+   CLERK_SECRET_KEY=your_clerk_secret_key_here
+   ```
+
+4. Run the development server:
 
    ```bash
    npm run dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Usage Guide
 
@@ -84,6 +106,20 @@ A modern, responsive combat tracker for D&D 5E and similar tabletop RPGs. Built 
 2. Click "Choose Combat File" and select a previously exported JSON file
 3. The combat will be loaded, replacing your current state
 4. Useful for sharing encounters or resuming saved combats
+
+### User Accounts (Optional)
+
+**Creating an Account:**
+1. Click "Sign Up" in the sidebar
+2. Create your account with email/password or social login
+3. Once signed in, you'll see your profile and saved combats
+
+**Managing Saved Combats:**
+1. Click on your profile in the sidebar
+2. Select "My Saved Combats" to view your library
+3. Save your current combat with a name and description
+4. Load any saved combat instantly
+5. Delete combats you no longer need
 
 ### Persistence
 
