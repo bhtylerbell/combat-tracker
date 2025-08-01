@@ -3,6 +3,8 @@
 import { useUser, SignOutButton } from '@clerk/nextjs';
 import { useState } from 'react';
 import UserProfileModal from '@/components/UserProfileModal';
+import AdminPanel from '@/components/AdminPanel';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { smallSecondary, smallDanger } from '@/styles/buttonStyles';
 
 interface UserProfileProps {
@@ -11,8 +13,10 @@ interface UserProfileProps {
 
 export default function UserProfile({ onManageCombats }: UserProfileProps) {
   const { user, isLoaded } = useUser();
+  const { isAdmin } = useAdminRole();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   if (!isLoaded || !user) return null;
 
@@ -28,7 +32,14 @@ export default function UserProfile({ onManageCombats }: UserProfileProps) {
           {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 text-left">
-          <div className="text-sm font-medium text-white truncate">{displayName}</div>
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium text-white truncate">{displayName}</div>
+            {isAdmin && (
+              <span className="px-1.5 py-0.5 bg-red-800 text-white text-xs font-medium rounded-full">
+                Admin
+              </span>
+            )}
+          </div>
           <div className="text-xs text-gray-400 truncate">
             {user.emailAddresses[0]?.emailAddress}
           </div>
@@ -71,6 +82,20 @@ export default function UserProfile({ onManageCombats }: UserProfileProps) {
               </svg>
               Account Settings
             </button>
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setShowAdminPanel(true);
+                  setShowDropdown(false);
+                }}
+                className={`${smallSecondary} w-full flex items-center justify-start gap-2`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819L3.05 7.05a1.875 1.875 0 00-.819 2.282l.382 1.017c.043.116.032.284-.083.45a7.493 7.493 0 00-.57.986c-.088.182-.228.277-.348.297L.567 12.25c-.904.151-1.567.933-1.567 1.85v1.8c0 .917.663 1.699 1.567 1.85l1.072.178c.12.02.26.115.348.297.18.331.374.65.57.986.115.166.126.334.083.45l-.382 1.017a1.875 1.875 0 00.819 2.282l.723.723c.77.77 2.019.77 2.788 0l.723-.723a1.875 1.875 0 002.282-.819l.382-1.017c.043-.116.032-.284-.083-.45a7.493 7.493 0 00-.57-.986c-.088-.182-.228-.277-.348-.297L12.25 16.433c-.904-.151-1.567-.933-1.567-1.85v-1.8c0-.917.663-1.699 1.567-1.85l1.072-.178c.12-.02.26-.115.348-.297.18-.331.374-.65.57-.986.115-.166.126-.334.083-.45l-.382-1.017a1.875 1.875 0 00-.819-2.282L12.4 5.5a1.875 1.875 0 00-2.282.819l-.382 1.017c-.043.116-.032.284.083.45.18.331.374.65.57.986.088.182.228.277.348.297l1.072.178c.904.151 1.567.933 1.567 1.85v1.8z" clipRule="evenodd" />
+                </svg>
+                Admin Panel
+              </button>
+            )}
             <SignOutButton>
               <button className={`${smallDanger} w-full flex items-center justify-start gap-2`}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -87,6 +112,12 @@ export default function UserProfile({ onManageCombats }: UserProfileProps) {
       <UserProfileModal 
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
+      />
+
+      {/* Admin Panel */}
+      <AdminPanel 
+        isOpen={showAdminPanel}
+        onClose={() => setShowAdminPanel(false)}
       />
     </div>
   );
