@@ -11,6 +11,7 @@ import ToastContainer from "@/components/ToastContainer";
 import { Combatant } from "@/types/combatant";
 import { CombatState } from "@/types/database";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { useCombatSync } from "@/utils/useCombatSync";
 import { useToast } from "@/hooks/useToast";
 import {
@@ -281,6 +282,7 @@ export default function CombatPage() {
 
   return (
     <div className="min-h-screen flex">
+      <SpeedInsights/>
       <Analytics />
       {!isSidebarOpen && (
         <button
