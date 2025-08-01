@@ -318,10 +318,10 @@ export default function CombatPage() {
                   {isSignedIn ? (
                     <UserProfile onManageCombats={() => setShowSavedCombats(true)} />
                   ) : (
-                    <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4">
-                      <h3 className="text-lg font-semibold text-blue-400 mb-3">Save Your Combats</h3>
-                      <p className="text-sm text-gray-400 mb-4">
-                        Create an account to save and manage your combat encounters across sessions.
+                    <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-sm p-3">
+                      <h3 className="text-base font-semibold text-blue-400 mb-2">Save Your Combats</h3>
+                      <p className="text-xs text-gray-400 mb-3">
+                        Create an account to save and manage your combat encounters.
                       </p>
                       <div className="flex gap-2">
                         <button
@@ -329,7 +329,7 @@ export default function CombatPage() {
                             setAuthMode('sign-up');
                             setShowAuthModal(true);
                           }}
-                          className={primaryButton}
+                          className={smallSecondary}
                         >
                           Sign Up
                         </button>
@@ -338,7 +338,7 @@ export default function CombatPage() {
                             setAuthMode('sign-in');
                             setShowAuthModal(true);
                           }}
-                          className={secondaryButton}
+                          className={smallSecondary}
                         >
                           Sign In
                         </button>
