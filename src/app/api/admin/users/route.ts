@@ -34,6 +34,7 @@ export async function GET() {
       role: user.publicMetadata?.role || 'user',
       createdAt: user.createdAt,
       lastSignInAt: user.lastSignInAt,
+      banned: user.banned || false,
     }));
 
     return NextResponse.json(users);

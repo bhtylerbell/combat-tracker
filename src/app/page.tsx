@@ -54,6 +54,9 @@ export default function CombatPage() {
   // Saved combats modal state
   const [showSavedCombats, setShowSavedCombats] = useState(false);
 
+  // Track currently loaded combat for overwrite functionality
+  const [currentlyLoadedCombatId, setCurrentlyLoadedCombatId] = useState<string | null>(null);
+
   // Save timer to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("combat_timer", timer.toString());
@@ -262,11 +265,14 @@ export default function CombatPage() {
   }, [saveCombatState]);
 
   // Load saved combat
-  const loadSavedCombat = useCallback(async (combatState: CombatState) => {
+  const loadSavedCombat = useCallback(async (combatState: CombatState, combatId?: string) => {
     setCombatants(combatState.combatants);
     setTurnIndex(combatState.turnIndex);
     setRound(combatState.round);
     setTimer(combatState.timer);
+    
+    // Track which combat was loaded for overwrite functionality
+    setCurrentlyLoadedCombatId(combatId || null);
     
     // Save to localStorage
     await saveCombatState(combatState);
@@ -574,6 +580,7 @@ export default function CombatPage() {
                     setTurnIndex(0);
                     setRound(1);
                     setTimer(0);
+                    setCurrentlyLoadedCombatId(null); // Clear loaded combat ID
                     await saveCombatState({
                       combatants: [],
                       turnIndex: 0,
@@ -679,6 +686,7 @@ export default function CombatPage() {
               round,
               timer,
             }}
+            currentlyLoadedCombatId={currentlyLoadedCombatId}
             showSuccess={showSuccess}
             showError={showError}
           />

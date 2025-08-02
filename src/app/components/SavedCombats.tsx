@@ -9,8 +9,9 @@ import { primaryButton, secondaryButton, smallDanger, smallSecondary } from '@/s
 interface SavedCombatsProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoadCombat: (combat: CombatState) => void;
+  onLoadCombat: (combat: CombatState, combatId?: string) => void;
   currentCombatState: CombatState;
+  currentlyLoadedCombatId: string | null;
   showSuccess: (message: string, duration?: number) => string;
   showError: (message: string, duration?: number) => string;
 }
@@ -20,6 +21,7 @@ export default function SavedCombats({
   onClose, 
   onLoadCombat, 
   currentCombatState,
+  currentlyLoadedCombatId,
   showSuccess,
   showError 
 }: SavedCombatsProps) {
@@ -141,6 +143,8 @@ export default function SavedCombats({
         setSaveDescription('');
         setShowSaveForm(false);
         fetchSavedCombats();
+        // Note: When saving as new, we don't change currentlyLoadedCombatId
+        // The parent component should handle this if needed
         showSuccess('Combat saved successfully!');
       } else {
         const errorData = await response.json();
@@ -149,6 +153,38 @@ export default function SavedCombats({
     } catch (err) {
       showError('Error saving combat');
       console.error('Error saving combat:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const overwriteCombat = async (combatId: string) => {
+    if (!user) return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/combats', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: combatId,
+          combat_data: currentCombatState,
+        }),
+      });
+
+      if (response.ok) {
+        fetchSavedCombats();
+        showSuccess('Combat updated successfully!');
+      } else {
+        const errorData = await response.json();
+        showError(errorData.error || 'Failed to update combat');
+      }
+    } catch (err) {
+      showError('Error updating combat');
+      console.error('Error updating combat:', err);
     } finally {
       setSaving(false);
     }
@@ -175,7 +211,7 @@ export default function SavedCombats({
   };
 
   const loadCombat = (combat: SavedCombat) => {
-    onLoadCombat(combat.combat_data);
+    onLoadCombat(combat.combat_data, combat.id);
     showSuccess(`Loaded "${combat.name}" successfully!`);
     onClose();
   };
@@ -233,13 +269,30 @@ export default function SavedCombats({
         <div className="mb-6 bg-gray-900/50 rounded-lg p-4 border border-gray-700">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-lg font-semibold text-gray-300">Save Current Combat</h3>
-            <button
-              onClick={() => setShowSaveForm(!showSaveForm)}
-              className={smallSecondary}
-            >
-              {showSaveForm ? 'Cancel' : 'Save Combat'}
-            </button>
+            <div className="flex gap-2">
+              {currentlyLoadedCombatId && (
+                <button
+                  onClick={() => overwriteCombat(currentlyLoadedCombatId)}
+                  disabled={saving}
+                  className={primaryButton}
+                >
+                  {saving ? 'Updating...' : 'Update Loaded Combat'}
+                </button>
+              )}
+              <button
+                onClick={() => setShowSaveForm(!showSaveForm)}
+                className={smallSecondary}
+              >
+                {showSaveForm ? 'Cancel' : 'Save as New'}
+              </button>
+            </div>
           </div>
+          
+          {currentlyLoadedCombatId && (
+            <div className="mb-3 text-sm text-blue-400">
+              Currently editing: {savedCombats.find(c => c.id === currentlyLoadedCombatId)?.name || 'Unknown Combat'}
+            </div>
+          )}
           
           {showSaveForm && (
             <div className="space-y-3 mt-3">

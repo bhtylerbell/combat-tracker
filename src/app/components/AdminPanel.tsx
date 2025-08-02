@@ -3,6 +3,7 @@
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { useState, useEffect } from 'react';
 import { primaryButton, secondaryButton, smallDanger } from '@/styles/buttonStyles';
+import RoleManagementModal from '@/components/RoleManagementModal';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -24,14 +25,17 @@ interface UserData {
   role: string;
   createdAt: string;
   lastSignIn?: string;
+  banned?: boolean;
 }
 
 export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
-  const { isAdmin, isSuperAdmin } = useAdminRole();
+  const { isAdmin, isSuperAdmin, role } = useAdminRole();
   const [users, setUsers] = useState<UserData[]>([]);
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'stats' | 'system'>('users');
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [showRoleModal, setShowRoleModal] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -60,6 +64,18 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     }
   };
 
+  const handleRoleUpdate = () => {
+    // Refresh users list after role update
+    fetchUsers();
+    setShowRoleModal(false);
+    setSelectedUser(null);
+  };
+
+  const openRoleModal = (user: UserData) => {
+    setSelectedUser(user);
+    setShowRoleModal(true);
+  };
+
   useEffect(() => {
     if (isOpen && isAdmin) {
       fetchUsers();
@@ -70,7 +86,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   if (!isAdmin || !isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
       <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-600 relative max-w-6xl w-full h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-gray-700">
@@ -79,7 +95,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-blue-400">
                 <path fillRule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819L3.05 7.05a1.875 1.875 0 00-.819 2.282l.382 1.017c.043.116.032.284-.083.45a7.493 7.493 0 00-.57.986c-.088.182-.228.277-.348.297L.567 12.25c-.904.151-1.567.933-1.567 1.85v1.8c0 .917.663 1.699 1.567 1.85l1.072.178c.12.02.26.115.348.297.18.331.374.65.57.986.115.166.126.334.083.45l-.382 1.017a1.875 1.875 0 00.819 2.282l.723.723c.77.77 2.019.77 2.788 0l.723-.723a1.875 1.875 0 002.282-.819l.382-1.017c.043-.116.032-.284-.083-.45a7.493 7.493 0 00-.57-.986c-.088-.182-.228-.277-.348-.297L12.25 16.433c-.904-.151-1.567-.933-1.567-1.85v-1.8c0-.917.663-1.699 1.567-1.85l1.072-.178c.12-.02.26-.115.348-.297.18-.331.374-.65.57-.986.115-.166.126-.334.083-.45l-.382-1.017a1.875 1.875 0 00-.819-2.282L12.4 5.5a1.875 1.875 0 00-2.282.819l-.382 1.017c-.043.116-.032.284.083.45.18.331.374.65.57.986.088.182.228.277.348.297l1.072.178c.904.151 1.567.933 1.567 1.85v1.8z" clipRule="evenodd" />
               </svg>
-              <h2 className="text-xl font-semibold text-blue-400">Admin Panel (Under Development)</h2>
+              <h2 className="text-xl font-semibold text-blue-400">Admin Panel</h2>
             </div>
             <button
               onClick={onClose}
@@ -147,15 +163,16 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 </div>
               ) : (
                 <div className="bg-gray-900 rounded-lg overflow-hidden">
-                  <div className="grid grid-cols-4 gap-4 p-4 bg-gray-800 text-gray-300 font-semibold text-sm">
+                  <div className="grid grid-cols-5 gap-4 p-4 bg-gray-800 text-gray-300 font-semibold text-sm">
                     <div>User</div>
                     <div>Role</div>
+                    <div>Status</div>
                     <div>Joined</div>
                     <div>Actions</div>
                   </div>
                   <div className="divide-y divide-gray-700">
                     {users.map((user) => (
-                      <div key={user.id} className="grid grid-cols-4 gap-4 p-4 items-center">
+                      <div key={user.id} className="grid grid-cols-5 gap-4 p-4 items-center">
                         <div>
                           <div className="text-white font-medium">
                             {user.firstName || user.lastName 
@@ -167,23 +184,39 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                         </div>
                         <div>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.role === 'admin' || user.role === 'super_admin'
+                            user.role === 'super_admin'
+                              ? 'bg-purple-900 text-purple-200'
+                              : user.role === 'admin'
                               ? 'bg-blue-900 text-blue-200'
+                              : user.role === 'moderator'
+                              ? 'bg-green-900 text-green-200'
                               : 'bg-gray-700 text-gray-300'
                           }`}>
                             {user.role || 'user'}
                           </span>
                         </div>
+                        <div>
+                          {user.banned ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-900 text-red-200">
+                              Banned
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-900 text-green-200">
+                              Active
+                            </span>
+                          )}
+                        </div>
                         <div className="text-sm text-gray-400">
                           {new Date(user.createdAt).toLocaleDateString()}
                         </div>
                         <div className="flex gap-2">
-                          {isSuperAdmin && user.role !== 'super_admin' && (
+                          {/* Only show role management if user has permission and target isn't super_admin or is super_admin themselves */}
+                          {(isSuperAdmin || (isAdmin && user.role !== 'super_admin' && user.role !== 'admin')) && (
                             <button
                               className={secondaryButton}
-                              onClick={() => {/* TODO: Role management */}}
+                              onClick={() => openRoleModal(user)}
                             >
-                              Edit Role
+                              Manage
                             </button>
                           )}
                         </div>
@@ -262,6 +295,20 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
           )}
         </div>
       </div>
+
+      {/* Role Management Modal */}
+      {selectedUser && (
+        <RoleManagementModal
+          isOpen={showRoleModal}
+          onClose={() => {
+            setShowRoleModal(false);
+            setSelectedUser(null);
+          }}
+          user={selectedUser}
+          currentUserRole={role}
+          onRoleUpdated={handleRoleUpdate}
+        />
+      )}
     </div>
   );
 }
