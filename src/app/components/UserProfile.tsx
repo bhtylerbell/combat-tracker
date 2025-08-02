@@ -2,21 +2,19 @@
 
 import { useUser, SignOutButton } from '@clerk/nextjs';
 import { useState } from 'react';
-import UserProfileModal from '@/components/UserProfileModal';
-import AdminPanel from '@/components/AdminPanel';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { smallSecondary, smallDanger } from '@/styles/buttonStyles';
 
 interface UserProfileProps {
   onManageCombats: () => void;
+  onShowProfile: () => void;
+  onShowAdmin: () => void;
 }
 
-export default function UserProfile({ onManageCombats }: UserProfileProps) {
+export default function UserProfile({ onManageCombats, onShowProfile, onShowAdmin }: UserProfileProps) {
   const { user, isLoaded } = useUser();
   const { isAdmin } = useAdminRole();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   if (!isLoaded || !user) return null;
 
@@ -72,7 +70,7 @@ export default function UserProfile({ onManageCombats }: UserProfileProps) {
             </button>
             <button
               onClick={() => {
-                setShowProfileModal(true);
+                onShowProfile();
                 setShowDropdown(false);
               }}
               className={`${smallSecondary} w-full flex items-center justify-start gap-2`}
@@ -85,7 +83,7 @@ export default function UserProfile({ onManageCombats }: UserProfileProps) {
             {isAdmin && (
               <button
                 onClick={() => {
-                  setShowAdminPanel(true);
+                  onShowAdmin();
                   setShowDropdown(false);
                 }}
                 className={`${smallSecondary} w-full flex items-center justify-start gap-2`}
@@ -107,18 +105,6 @@ export default function UserProfile({ onManageCombats }: UserProfileProps) {
           </div>
         </div>
       )}
-
-      {/* Profile Modal */}
-      <UserProfileModal 
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-      />
-
-      {/* Admin Panel */}
-      <AdminPanel 
-        isOpen={showAdminPanel}
-        onClose={() => setShowAdminPanel(false)}
-      />
     </div>
   );
 }

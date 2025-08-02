@@ -6,6 +6,8 @@ import AddCombatantForm from "@/components/AddCombatantForm";
 import CombatantCard from "@/components/CombatantCard";
 import AuthModal from "@/components/AuthModal";
 import UserProfile from "@/components/UserProfile";
+import UserProfileModal from "@/components/UserProfileModal";
+import AdminPanel from "@/components/AdminPanel";
 import SavedCombats from "@/components/SavedCombats";
 import ToastContainer from "@/components/ToastContainer";
 import { Combatant } from "@/types/combatant";
@@ -53,6 +55,10 @@ export default function CombatPage() {
 
   // Saved combats modal state
   const [showSavedCombats, setShowSavedCombats] = useState(false);
+
+  // User profile modal states
+  const [showUserProfileModal, setShowUserProfileModal] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   // Track currently loaded combat for overwrite functionality
   const [currentlyLoadedCombatId, setCurrentlyLoadedCombatId] = useState<string | null>(null);
@@ -322,7 +328,11 @@ export default function CombatPage() {
               {isLoaded && (
                 <div className="mb-6">
                   {isSignedIn ? (
-                    <UserProfile onManageCombats={() => setShowSavedCombats(true)} />
+                    <UserProfile 
+                      onManageCombats={() => setShowSavedCombats(true)}
+                      onShowProfile={() => setShowUserProfileModal(true)}
+                      onShowAdmin={() => setShowAdminPanel(true)}
+                    />
                   ) : (
                     <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-sm p-3">
                       <h3 className="text-base font-semibold text-blue-400 mb-2">Save Your Combats</h3>
@@ -544,7 +554,7 @@ export default function CombatPage() {
           <p className="text-gray-400">No combatants yet. Add some on the left!</p>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-3 z-30">
           {combatants.map((c, idx) => (
             <CombatantCard
               // Use both id and initiative for a more stable key
@@ -692,6 +702,7 @@ export default function CombatPage() {
           />
         )}
       </main>
+      
       {/* Navigation Buttons */}
       {combatants.length >= 2 && (
         <div className="fixed bottom-4 right-4 flex gap-2 z-40">
@@ -702,6 +713,44 @@ export default function CombatPage() {
             Next Turn
           </button>
         </div>
+      )}
+      
+      {/* Modals - Rendered at page level to avoid stacking context issues */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        mode={authMode}
+        onSwitchMode={setAuthMode}
+      />
+
+      {/* User Profile Modal */}
+      <UserProfileModal 
+        isOpen={showUserProfileModal}
+        onClose={() => setShowUserProfileModal(false)}
+      />
+
+      {/* Admin Panel */}
+      <AdminPanel 
+        isOpen={showAdminPanel}
+        onClose={() => setShowAdminPanel(false)}
+      />
+
+      {/* Saved Combats Modal */}
+      {isSignedIn && (
+        <SavedCombats
+          isOpen={showSavedCombats}
+          onClose={() => setShowSavedCombats(false)}
+          onLoadCombat={loadSavedCombat}
+          currentCombatState={{
+            combatants,
+            turnIndex,
+            round,
+            timer,
+          }}
+          currentlyLoadedCombatId={currentlyLoadedCombatId}
+          showSuccess={showSuccess}
+          showError={showError}
+        />
       )}
       
       {/* Toast Container */}

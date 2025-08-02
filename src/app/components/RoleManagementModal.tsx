@@ -115,7 +115,7 @@ export default function RoleManagementModal({
     : user.email;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000] p-4">
       <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-600 relative max-w-md w-full">
         {/* Header */}
         <div className="p-6 border-b border-gray-700">
