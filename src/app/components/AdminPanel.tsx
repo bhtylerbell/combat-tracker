@@ -86,7 +86,7 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   if (!isAdmin || !isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
       <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-600 relative max-w-6xl w-full h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-gray-700">
